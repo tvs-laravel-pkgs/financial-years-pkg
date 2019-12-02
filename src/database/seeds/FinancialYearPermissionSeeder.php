@@ -13,28 +13,28 @@ class FinancialYearPermissionSeeder extends Seeder {
 	public function run() {
 		$permissions = [
 			//MASTER > CUSTOMERS
-			4600 => [
+			5200 => [
 				'display_order' => 10,
 				'parent_id' => null,
-				'name' => 'customers',
-				'display_name' => 'FinancialYears',
+				'name' => 'financial-years',
+				'display_name' => 'Financial Years',
 			],
-			4601 => [
+			5201 => [
 				'display_order' => 1,
-				'parent_id' => 4600,
-				'name' => 'add-customer',
+				'parent_id' => 5200,
+				'name' => 'add-financial-year',
 				'display_name' => 'Add',
 			],
-			4602 => [
+			5202 => [
 				'display_order' => 2,
-				'parent_id' => 4600,
-				'name' => 'edit-customer',
+				'parent_id' => 5200,
+				'name' => 'edit-financial-year',
 				'display_name' => 'Edit',
 			],
-			4603 => [
+			5203 => [
 				'display_order' => 3,
-				'parent_id' => 4600,
-				'name' => 'delete-customer',
+				'parent_id' => 5200,
+				'name' => 'delete-financial-year',
 				'display_name' => 'Delete',
 			],
 
