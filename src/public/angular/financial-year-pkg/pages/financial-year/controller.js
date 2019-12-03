@@ -1,12 +1,12 @@
 app.component('financialYearList', {
-    templateUrl: customer_list_template_url,
+    templateUrl: financial_year_list_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $location) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         var table_scroll;
         table_scroll = $('.page-main-content').height() - 37;
-        var dataTable = $('#customers_list').DataTable({
+        var dataTable = $('#financial_year_list').DataTable({
             "dom": cndn_dom_structure,
             "language": {
                 // "search": "",
@@ -40,19 +40,15 @@ app.component('financialYearList', {
                 type: "GET",
                 dataType: "json",
                 data: function(d) {
-                    d.customer_code = $('#customer_code').val();
-                    d.customer_name = $('#customer_name').val();
-                    d.mobile_no = $('#mobile_no').val();
-                    d.email = $('#email').val();
+                    d.code = $('#financial_year_code').val();
+                    d.from = $('#financial_year_from').val();
                 },
             },
 
             columns: [
                 { data: 'action', class: 'action', name: 'action', searchable: false },
-                { data: 'code', name: 'customers.code' },
-                { data: 'name', name: 'customers.name' },
-                { data: 'mobile_no', name: 'customers.mobile_no' },
-                { data: 'email', name: 'customers.email' },
+                { data: 'code', name: 'financial_years.code' },
+                { data: 'from', name: 'financial_years.from' },
             ],
             "infoCallback": function(settings, start, end, max, total, pre) {
                 $('#table_info').html(total)
@@ -66,22 +62,22 @@ app.component('financialYearList', {
 
         $scope.clear_search = function() {
             $('#search_customer').val('');
-            $('#customers_list').DataTable().search('').draw();
+            $('#financial_year_list').DataTable().search('').draw();
         }
 
-        var dataTables = $('#customers_list').dataTable();
+        var dataTables = $('#financial_year_list').dataTable();
         $("#search_customer").keyup(function() {
             dataTables.fnFilter(this.value);
         });
 
         //DELETE
         $scope.deleteFinancialYear = function($id) {
-            $('#customer_id').val($id);
+            $('#financial_year_id').val($id);
         }
         $scope.deleteConfirm = function() {
-            $id = $('#customer_id').val();
+            $id = $('#financial_year_id').val();
             $http.get(
-                customer_delete_data_url + '/' + $id,
+                financial_year_delete_data_url + '/' + $id,
             ).then(function(response) {
                 if (response.data.success) {
                     $noty = new Noty({
@@ -92,30 +88,22 @@ app.component('financialYearList', {
                     setTimeout(function() {
                         $noty.close();
                     }, 3000);
-                    $('#customers_list').DataTable().ajax.reload(function(json) {});
-                    $location.path('/customer-pkg/customer/list');
+                    $('#financial_year_list').DataTable().ajax.reload(function(json) {});
+                    $location.path('/financial-year-pkg/financial-year/list');
                 }
             });
         }
 
         //FOR FILTER
-        $('#customer_code').on('keyup', function() {
+        $('#financial_year_code').on('keyup', function() {
             dataTables.fnFilter();
         });
-        $('#customer_name').on('keyup', function() {
-            dataTables.fnFilter();
-        });
-        $('#mobile_no').on('keyup', function() {
-            dataTables.fnFilter();
-        });
-        $('#email').on('keyup', function() {
+        $('#financial_year_from').on('keyup', function() {
             dataTables.fnFilter();
         });
         $scope.reset_filter = function() {
-            $("#customer_name").val('');
-            $("#customer_code").val('');
-            $("#mobile_no").val('');
-            $("#email").val('');
+            $("#financial_year_code").val('');
+            $("#financial_year_from").val('');
             dataTables.fnFilter();
         }
 
@@ -124,10 +112,10 @@ app.component('financialYearList', {
 });
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
-app.component('customerForm', {
-    templateUrl: customer_form_template_url,
+app.component('financialYearForm', {
+    templateUrl: financial_year_form_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
-        get_form_data_url = typeof($routeParams.id) == 'undefined' ? customer_get_form_data_url : customer_get_form_data_url + '/' + $routeParams.id;
+        get_form_data_url = typeof($routeParams.id) == 'undefined' ? financial_year_get_form_data_url : financial_year_get_form_data_url + '/' + $routeParams.id;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
@@ -135,23 +123,17 @@ app.component('customerForm', {
             get_form_data_url
         ).then(function(response) {
             // console.log(response);
-            self.customer = response.data.customer;
-            self.address = response.data.address;
-            self.country_list = response.data.country_list;
+            self.financial_year = response.data.financial_year;
             self.action = response.data.action;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
-                $scope.onSelectedCountry(self.address.country_id);
-                $scope.onSelectedState(self.address.state_id);
-                if (self.customer.deleted_at) {
+                if (self.financial_year.deleted_at) {
                     self.switch_value = 'Inactive';
                 } else {
                     self.switch_value = 'Active';
                 }
             } else {
                 self.switch_value = 'Active';
-                self.state_list = [{ 'id': '', 'name': 'Select State' }];
-                self.city_list = [{ 'id': '', 'name': 'Select City' }];
             }
         });
 
@@ -167,114 +149,30 @@ app.component('customerForm', {
         $('.btn-pills').on("click", function() {
             tabPaneFooter();
         });
-        $scope.btnNxt = function() {}
-        $scope.prev = function() {}
 
-        //SELECT STATE BASED COUNTRY
-        $scope.onSelectedCountry = function(id) {
-            customer_get_state_by_country = vendor_get_state_by_country;
-            $http.post(
-                customer_get_state_by_country, { 'country_id': id }
-            ).then(function(response) {
-                // console.log(response);
-                self.state_list = response.data.state_list;
-            });
-        }
 
-        //SELECT CITY BASED STATE
-        $scope.onSelectedState = function(id) {
-            customer_get_city_by_state = vendor_get_city_by_state
-            $http.post(
-                customer_get_city_by_state, { 'state_id': id }
-            ).then(function(response) {
-                // console.log(response);
-                self.city_list = response.data.city_list;
-            });
-        }
-
-        var form_id = '#form';
+        var form_id = '#financial_year_form';
         var v = jQuery(form_id).validate({
             ignore: '',
             rules: {
                 'code': {
                     required: true,
                     minlength: 3,
-                    maxlength: 255,
+                    maxlength: 191,
                 },
-                'name': {
+                'from': {
                     required: true,
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'cust_group': {
-                    maxlength: 100,
-                },
-                'dimension': {
-                    maxlength: 50,
-                },
-                'mobile_no': {
-                    required: true,
-                    minlength: 10,
-                    maxlength: 25,
-                },
-                'email': {
-                    required: true,
-                    email: true,
-                    minlength: 6,
-                    maxlength: 255,
-                },
-                'address_line1': {
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'address_line2': {
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'pincode': {
-                    required: true,
-                    minlength: 6,
-                    maxlength: 6,
+                    minlength: 4,
+                    maxlength: 4,
                 },
             },
             messages: {
                 'code': {
-                    maxlength: 'Maximum of 255 charaters',
+                    maxlength: 'Maximum of 191 charaters',
                 },
-                'name': {
-                    maxlength: 'Maximum of 255 charaters',
+                'from': {
+                    maxlength: 'Maximum of 4 charaters',
                 },
-                'cust_group': {
-                    maxlength: 'Maximum of 100 charaters',
-                },
-                'dimension': {
-                    maxlength: 'Maximum of 50 charaters',
-                },
-                'mobile_no': {
-                    maxlength: 'Maximum of 25 charaters',
-                },
-                'email': {
-                    maxlength: 'Maximum of 100 charaters',
-                },
-                'address_line1': {
-                    maxlength: 'Maximum of 255 charaters',
-                },
-                'address_line2': {
-                    maxlength: 'Maximum of 255 charaters',
-                },
-                'pincode': {
-                    maxlength: 'Maximum of 6 charaters',
-                },
-            },
-            invalidHandler: function(event, validator) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: 'You have errors,Please check all tabs'
-                }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 3000)
             },
             submitHandler: function(form) {
                 let formData = new FormData($(form_id)[0]);
@@ -296,7 +194,7 @@ app.component('customerForm', {
                             setTimeout(function() {
                                 $noty.close();
                             }, 3000);
-                            $location.path('/customer-pkg/customer/list');
+                            $location.path('/financial-year-pkg/financial-year/list');
                             $scope.$apply();
                         } else {
                             if (!res.success == true) {
@@ -315,7 +213,7 @@ app.component('customerForm', {
                                 }, 3000);
                             } else {
                                 $('#submit').button('reset');
-                                $location.path('/customer-pkg/customer/list');
+                                $location.path('/financial-year-pkg/financial-year/list');
                                 $scope.$apply();
                             }
                         }

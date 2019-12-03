@@ -1,6 +1,6 @@
 <?php
 
-namespace Abs\FinancialYearPkg;
+namespace Abs\FinancialYearsPkg;
 
 use App\Company;
 use App\Config;
@@ -12,11 +12,7 @@ class FinancialYear extends Model {
 	protected $table = 'financial_years';
 	protected $fillable = [
 		'code',
-		'name',
-		'cust_group',
-		'dimension',
-		'mobile_no',
-		'email',
+		'from',
 		'company_id',
 	];
 

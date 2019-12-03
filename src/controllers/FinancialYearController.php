@@ -1,7 +1,7 @@
 <?php
 
-namespace Abs\FinancialYearPkg;
-use Abs\FinancialYearPkg\FinancialYear;
+namespace Abs\FinancialYearsPkg;
+use Abs\FinancialYearsPkg\FinancialYear;
 use App\Address;
 use App\Country;
 use App\Http\Controllers\Controller;
@@ -18,52 +18,40 @@ class FinancialYearController extends Controller {
 	}
 
 	public function getFinancialYearList(Request $request) {
-		$customer_list = FinancialYear::withTrashed()
+		$financial_years_list = FinancialYear::withTrashed()
 			->select(
-				'customers.id',
-				'customers.code',
-				'customers.name',
-				'customers.mobile_no',
-				'customers.email',
-				DB::raw('IF(customers.deleted_at IS NULL,"Active","Inactive") as status')
+				'financial_years.id',
+				'financial_years.code',
+				'financial_years.from',
+				DB::raw('IF(financial_years.deleted_at IS NULL,"Active","Inactive") as status')
 			)
-			->where('customers.company_id', Auth::user()->company_id)
+			->where('financial_years.company_id', Auth::user()->company_id)
 			->where(function ($query) use ($request) {
-				if (!empty($request->customer_code)) {
-					$query->where('customers.code', 'LIKE', '%' . $request->customer_code . '%');
+				if (!empty($request->code)) {
+					$query->where('financial_years.code', 'LIKE', '%' . $request->code . '%');
 				}
 			})
 			->where(function ($query) use ($request) {
-				if (!empty($request->customer_name)) {
-					$query->where('customers.name', 'LIKE', '%' . $request->customer_name . '%');
+				if (!empty($request->from)) {
+					$query->where('financial_years.from', 'LIKE', '%' . $request->from . '%');
 				}
 			})
-			->where(function ($query) use ($request) {
-				if (!empty($request->mobile_no)) {
-					$query->where('customers.mobile_no', 'LIKE', '%' . $request->mobile_no . '%');
-				}
-			})
-			->where(function ($query) use ($request) {
-				if (!empty($request->email)) {
-					$query->where('customers.email', 'LIKE', '%' . $request->email . '%');
-				}
-			})
-			->orderby('customers.id', 'desc');
+			->orderby('financial_years.id', 'desc');
 
-		return Datatables::of($customer_list)
-			->addColumn('code', function ($customer_list) {
-				$status = $customer_list->status == 'Active' ? 'green' : 'red';
-				return '<span class="status-indicator ' . $status . '"></span>' . $customer_list->code;
+		return Datatables::of($financial_years_list)
+			->addColumn('code', function ($financial_years_list) {
+				$status = $financial_years_list->status == 'Active' ? 'green' : 'red';
+				return '<span class="status-indicator ' . $status . '"></span>' . $financial_years_list->code;
 			})
-			->addColumn('action', function ($customer_list) {
+			->addColumn('action', function ($financial_years_list) {
 				$edit_img = asset('public/theme/img/table/cndn/edit.svg');
 				$delete_img = asset('public/theme/img/table/cndn/delete.svg');
 				return '
-					<a href="#!/customer-pkg/customer/edit/' . $customer_list->id . '">
+					<a href="#!/financial-year-pkg/financial-year/edit/' . $financial_years_list->id . '">
 						<img src="' . $edit_img . '" alt="View" class="img-responsive">
 					</a>
-					<a href="javascript:;" data-toggle="modal" data-target="#delete_customer"
-					onclick="angular.element(this).scope().deleteFinancialYear(' . $customer_list->id . ')" dusk = "delete-btn" title="Delete">
+					<a href="javascript:;" data-toggle="modal" data-target="#delete_financial_year"
+					onclick="angular.element(this).scope().deleteFinancialYear(' . $financial_years_list->id . ')" dusk = "delete-btn" title="Delete">
 					<img src="' . $delete_img . '" alt="delete" class="img-responsive">
 					</a>
 					';
@@ -73,51 +61,35 @@ class FinancialYearController extends Controller {
 
 	public function getFinancialYearFormData($id = NULL) {
 		if (!$id) {
-			$customer = new FinancialYear;
-			$address = new Address;
+			$financial_year = new FinancialYear;
 			$action = 'Add';
 		} else {
-			$customer = FinancialYear::withTrashed()->find($id);
-			$address = Address::where('address_of_id', 24)->where('entity_id', $id)->first();
+			$financial_year = FinancialYear::withTrashed()->find($id);
 			$action = 'Edit';
 		}
-		$this->data['country_list'] = $country_list = Collect(Country::select('id', 'name')->get())->prepend(['id' => '', 'name' => 'Select Country']);
-		$this->data['customer'] = $customer;
-		$this->data['address'] = $address;
+		$this->data['financial_year'] = $financial_year;
 		$this->data['action'] = $action;
 
 		return response()->json($this->data);
 	}
 
 	public function saveFinancialYear(Request $request) {
-		// dd($request->all());
+		 //dd($request->all());
 		try {
 			$error_messages = [
 				'code.required' => 'FinancialYear Code is Required',
-				'code.max' => 'Maximum 255 Characters',
+				'code.max' => 'Maximum 191 Characters',
 				'code.min' => 'Minimum 3 Characters',
-				'name.required' => 'FinancialYear Name is Required',
-				'name.max' => 'Maximum 255 Characters',
-				'name.min' => 'Minimum 3 Characters',
-				'mobile_no.required' => 'Mobile Number is Required',
-				'mobile_no.max' => 'Maximum 25 Numbers',
-				'email.required' => 'Email is Required',
-				'address_line1.required' => 'Address Line 1 is Required',
-				'address_line1.max' => 'Maximum 255 Characters',
-				'address_line1.min' => 'Minimum 3 Characters',
-				'address_line2.max' => 'Maximum 255 Characters',
-				'pincode.required' => 'Pincode is Required',
-				'pincode.max' => 'Maximum 6 Characters',
-				'pincode.min' => 'Minimum 6 Characters',
+				'code.unique' => 'Code already taken',
+				'from.required' => 'FinancialYear Name is Required',
+				'from.max' => 'Maximum 4 Characters',
+				'from.min' => 'Minimum 4 Characters',
+				'from.unique' => 'From already taken',
 			];
-			$validator = Validator::make($request->all(), [
-				'code' => 'required|max:255|min:3',
-				'name' => 'required|max:255|min:3',
-				'mobile_no' => 'required|max:25',
-				'email' => 'required',
-				'address_line1' => 'required|max:255|min:3',
-				'address_line2' => 'max:255',
-				'pincode' => 'required|max:6|min:6',
+			$validator = Validator::make($request->all(),
+			 [
+				'code' => 'required|max:191|min:3|unique:financial_years,code,'.$request->id.',id,company_id,'.Auth::user()->company_id,
+				'from' => 'required|numeric|digits:4|unique:financial_years,from,'.$request->id.',id,company_id,'.Auth::user()->company_id,
 			], $error_messages);
 			if ($validator->fails()) {
 				return response()->json(['success' => false, 'errors' => $validator->errors()->all()]);
@@ -125,35 +97,25 @@ class FinancialYearController extends Controller {
 
 			DB::beginTransaction();
 			if (!$request->id) {
-				$customer = new FinancialYear;
-				$customer->created_by_id = Auth::user()->id;
-				$customer->created_at = Carbon::now();
-				$customer->updated_at = NULL;
-				$address = new Address;
+				$financial_year = new FinancialYear;
+				$financial_year->created_by_id = Auth::user()->id;
+				$financial_year->created_at = Carbon::now();
+				$financial_year->updated_at = NULL;
 			} else {
-				$customer = FinancialYear::withTrashed()->find($request->id);
-				$customer->updated_by_id = Auth::user()->id;
-				$customer->updated_at = Carbon::now();
-				$address = Address::where('address_of_id', 24)->where('entity_id', $request->id)->first();
+				$financial_year = FinancialYear::withTrashed()->find($request->id);
+				$financial_year->updated_by_id = Auth::user()->id;
+				$financial_year->updated_at = Carbon::now();
 			}
-			$customer->fill($request->all());
-			$customer->company_id = Auth::user()->company_id;
+			$financial_year->fill($request->all());
+			$financial_year->company_id = Auth::user()->company_id;
 			if ($request->status == 'Inactive') {
-				$customer->deleted_at = Carbon::now();
-				$customer->deleted_by_id = Auth::user()->id;
+				$financial_year->deleted_at = Carbon::now();
+				$financial_year->deleted_by_id = Auth::user()->id;
 			} else {
-				$customer->deleted_by_id = NULL;
-				$customer->deleted_at = NULL;
+				$financial_year->deleted_by_id = NULL;
+				$financial_year->deleted_at = NULL;
 			}
-			$customer->save();
-
-			$address->fill($request->all());
-			$address->company_id = Auth::user()->company_id;
-			$address->address_of_id = 24;
-			$address->entity_id = $customer->id;
-			$address->address_type_id = 40;
-			$address->name = 'Primary Address';
-			$address->save();
+			$financial_year->save();
 
 			DB::commit();
 			if (!($request->id)) {
@@ -169,7 +131,6 @@ class FinancialYearController extends Controller {
 	public function deleteFinancialYear($id) {
 		$delete_status = FinancialYear::withTrashed()->where('id', $id)->forceDelete();
 		if ($delete_status) {
-			$address_delete = Address::where('address_of_id', 24)->where('entity_id', $id)->forceDelete();
 			return response()->json(['success' => true]);
 		}
 	}

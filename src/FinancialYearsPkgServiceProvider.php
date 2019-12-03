@@ -1,10 +1,10 @@
 <?php
 
-namespace Abs\FinancialYearPkg;
+namespace Abs\FinancialYearsPkg;
 
 use Illuminate\Support\ServiceProvider;
 
-class FinancialYearPkgServiceProvider extends ServiceProvider {
+class FinancialYearsPkgServiceProvider extends ServiceProvider {
 	/**
 	 * Register services.
 	 *
