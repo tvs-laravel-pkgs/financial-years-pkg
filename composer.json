@@ -1,5 +1,5 @@
 {
-    "name": "abs/financial-year-pkg",
+    "name": "abs/financial-years-pkg",
     "description": "For Financial Year CRUD",
     "type": "library",
     "require":
@@ -17,7 +17,7 @@
         "laravel":
         {
             "providers": [
-                "Abs\\FinancialYearPkg\\FinancialYearPkgServiceProvider"
+                "Abs\\FinancialYearsPkg\\FinancialYearsPkgServiceProvider"
             ]
         }
     },
@@ -25,7 +25,7 @@
     {
         "psr-4":
         {
-            "Abs\\FinancialYearPkg\\": "src/"
+            "Abs\\FinancialYearsPkg\\": "src/"
         }
     }
 }
