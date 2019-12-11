@@ -1,10 +1,10 @@
 <?php
-namespace Abs\FinancialYearPkg\Database\Seeds;
+namespace Abs\FinancialYearsPkg\Database\Seeds;
 
 use App\Permission;
 use Illuminate\Database\Seeder;
 
-class FinancialYearPermissionSeeder extends Seeder {
+class FinancialYearsPermissionSeeder extends Seeder {
 	/**
 	 * Run the database seeds.
 	 *
