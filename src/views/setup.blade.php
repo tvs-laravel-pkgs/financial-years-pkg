@@ -1,4 +1,4 @@
-@if(config('custom.PKG_DEV'))
+@if(config('financial-years-pkg.DEV'))
     <?php $financial_years_pkg_prefix = '/packages/abs/financial-years-pkg/src';?>
 @else
     <?php $financial_years_pkg_prefix = '';?>
