@@ -1,20 +1,3 @@
-app.config(['$routeProvider', function($routeProvider) {
-
-    $routeProvider.
-    when('/financial-year-pkg/financial-year/list', {
-        template: '<financial-year-list></financial-year-list>',
-        title: 'Financial Years',
-    }).
-    when('/financial-year-pkg/financial-year/add', {
-        template: '<financial-year-form></financial-year-form>',
-        title: 'Add Financial Year',
-    }).
-    when('/financial-year-pkg/financial-year/edit/:id', {
-        template: '<financial-year-form></financial-year-form>',
-        title: 'Edit Financial Year',
-    });
-}]);
-
 app.component('financialYearList', {
     templateUrl: financial_year_list_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $location) {
