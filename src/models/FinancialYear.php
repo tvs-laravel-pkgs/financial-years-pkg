@@ -4,8 +4,8 @@ namespace Abs\FinancialYearsPkg;
 
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\BaseModel;
-// use Illuminate\Database\Eloquent\Model;
 use App\Company;
+use Auth;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinancialYear extends BaseModel {
